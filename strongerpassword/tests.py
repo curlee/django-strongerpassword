@@ -6,40 +6,52 @@ from django.core.exceptions import ValidationError
 class TestHippaValidator(TestCase):
     def setUp(self):
         # these will change as more rules are added
-        self.goodpw = 'goodpass'
-        self.badpw = 'badpw'
-        self.shortpw = 'badpw'
+        self.pw_good = 'goodpass1'
+        self.pw_bad = 'a'
+        self.pw_tooshort = 'badpw'
+        self.pw_nonumber = 'nonumber'
 
     def test_raise_hippa_error(self):
-        self.assertRaises(ValidationError, HippaValidator(), self.badpw)
+        self.assertRaises(ValidationError, HippaValidator(), self.pw_bad)
 
     def test_hippa_invalid_message(self):
         try:
-            HippaValidator()(self.badpw)
+            HippaValidator()(self.pw_bad)
         except Exception, e:
-            message = e.message
+            error = e.error_list
 
         self.assertEquals(
-            message,
+            error[0].message,
             'Your password is not strong enough.'
         )
 
     def test_raise_hippa_error_shortpw_exception(self):
         try:
-            HippaValidator()(self.shortpw)
+            HippaValidator()(self.pw_tooshort)
         except ValidationError, e:
-            errors = e.params
+            error = e.error_list
 
         self.assertEquals(
-            errors['min_length'],
-            'Your password must be at least 6 characters in length.'
+            error[1].message,
+            'Must contain 6 or more characters.'
+        )
+
+    def test_raise_hippa_error_missingint_exception(self):
+        try:
+            HippaValidator()(self.pw_nonumber)
+        except ValidationError, e:
+            error = e.error_list
+
+        self.assertEquals(
+            error[1].message,
+            'min int'
         )
 
     def test_good_password(self):
         error = False
 
         try:
-            HippaValidator()(self.goodpw)
+            HippaValidator()(self.pw_good)
         except ValidationError:
             error = True
 
