@@ -4,7 +4,10 @@ from django.core.validators import BaseValidator
 from django.core.validators import MinLengthValidator
 from django.core.validators import RegexValidator
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
+from django.conf import settings as django_settings
+from .exceptions import MissingDictionaryError
+
+settings = django_settings.STRONGER_PASSWORD
 
 
 class HippaValidator(BaseValidator):
@@ -13,12 +16,24 @@ class HippaValidator(BaseValidator):
 
     def __init__(self, *args, **kwargs):
         self._errors = []
-        self._min_length = kwargs.get('length', 6)
-        self._min_int_length = kwargs.get('numbers', 1)
-        self._min_spec_length = kwargs.get('special', 1)
-        self._dictionary = kwargs.get('dictionary', None)
+        self._min_length = kwargs.get(
+            'length', settings.get('length', 6)
+        )
+        self._min_int_length = kwargs.get(
+            'numbers', settings.get('numbers', 1)
+        )
+        self._min_spec_length = kwargs.get(
+            'special',
+            settings.get('special', 1)
+        )
+        self._dictionary = kwargs.get(
+            'dictionary',
+            settings.get('dictionary', None)
+        )
 
-        super(HippaValidator, self).__init__(limit_value=None)
+        super(HippaValidator, self).__init__(
+            limit_value=None
+        )
 
     def __call__(self, value):
         self._validate_min_length(value)
@@ -101,27 +116,26 @@ class DictionaryValidator(RegexValidator):
     code = 'dictionary_word'
 
     def __init__(
-        self,
-        regex=None,
-        message=None,
-        code=None,
-        inverse_match=True,
-        flags=None,
-        dictionary=[]
+        self, dictionary=None  # path, list or set
     ):
-        if not dictionary:
-            f = open(
-                settings.STRONGER_PASSWORD.get('dictionary', None)
-            )
+        if isinstance(dictionary, basestring):
+            f = open(dictionary)
             dictionary = f.read()
             f.close()
+            dictionary = frozenset(
+                [word for word in dictionary.split('\n')]
+            )
+        elif not isinstance(dictionary, list):
+            raise MissingDictionaryError()
 
-        words = frozenset([word for word in dictionary.split('\n')])
         self.regex = re.compile(
-            r'.*(%s).*' % '|'.join(words),
+            r'.*(%s).*' % '|'.join(dictionary),
             flags=re.IGNORECASE
         )
 
         super(DictionaryValidator, self).__init__(
-            regex, message, code, inverse_match, flags
+            regex=self.regex,
+            message=self.message,
+            code=self.code,
+            inverse_match=True
         )

@@ -19,11 +19,13 @@ Quick start
 3. Add settings (optional)
 
   STRONGER_PASSWORD = {
-    'dictionary': path/to/dictionary,
-
+    'length': 6,
+    'numbers': 1,
+    'special': 1,
+    'dictionary': path/to/dictionary
   }
 
 
 Build:
 
-`python setup.py sdist`
+    python setup.py sdist

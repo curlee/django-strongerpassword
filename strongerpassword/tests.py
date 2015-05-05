@@ -4,6 +4,7 @@ from .validators import HippaValidator
 from django.core.exceptions import ValidationError
 
 HERE = os.path.dirname(os.path.realpath(__file__))
+TEST_DICT_PATH = os.path.join(HERE, 'test_dictionary')
 
 
 class TestHippaValidator(TestCase):
@@ -64,16 +65,9 @@ class TestHippaValidator(TestCase):
         )
 
     def test_raise_hippa_error_dictionary_exception(self):
-        f = open(
-            os.path.join(HERE, 'test_dictionary')
-        )
-
-        dictionary = f.read()
-        f.close()
-
         try:
             HippaValidator(
-                dictionary=dictionary
+                dictionary=TEST_DICT_PATH
             )(
                 value=self.pw_dictionary
             )
@@ -82,7 +76,22 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error[1].message,
-            'Must not contain words found in the dictionary.'
+            'Must not contain common words.'
+        )
+
+    def test_raise_hippa_error_dictionary_exception_withlist(self):
+        try:
+            HippaValidator(
+                dictionary=['elephant',]
+            )(
+                value='elephant&1'
+            )
+        except ValidationError, e:
+            error = e.error_list
+
+        self.assertEquals(
+            error[1].message,
+            'Must not contain common words.'
         )
 
     def test_good_password(self):
@@ -90,7 +99,7 @@ class TestHippaValidator(TestCase):
 
         try:
             HippaValidator()(self.pw_good)
-        except ValidationError:
-            error = True
+        except ValidationError, e:
+            error = e
 
         self.assertFalse(error)
