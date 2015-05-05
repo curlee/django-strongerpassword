@@ -15,3 +15,8 @@ Quick start
 
   class Form(forms.Form):
      password = StrongerPasswordField(label='Password')
+
+
+Build:
+
+`python setup.py sdist`
