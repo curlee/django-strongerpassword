@@ -1,6 +1,9 @@
+import os
 from django.test import TestCase
 from .validators import HippaValidator
 from django.core.exceptions import ValidationError
+
+HERE = os.path.dirname(os.path.realpath(__file__))
 
 
 class TestHippaValidator(TestCase):
@@ -8,9 +11,10 @@ class TestHippaValidator(TestCase):
         # these will change as more rules are added
         self.pw_good = 'goodpass1*'
         self.pw_bad = 'a'
-        self.pw_tooshort = 'badpw'
+        self.pw_tooshort = 'short'
         self.pw_nonumber = 'nonumber'
         self.pw_nospecialchars = 'adsfasdfasdf123'
+        self.pw_dictionary = 'ESSENTIAL1*'
 
     def test_raise_hippa_error(self):
         self.assertRaises(ValidationError, HippaValidator(), self.pw_bad)
@@ -57,6 +61,28 @@ class TestHippaValidator(TestCase):
         self.assertEquals(
             error[1].message,
             'Must contain 1 or more special characters.'
+        )
+
+    def test_raise_hippa_error_dictionary_exception(self):
+        f = open(
+            os.path.join(HERE, 'test_dictionary')
+        )
+
+        dictionary = f.read()
+        f.close()
+
+        try:
+            HippaValidator(
+                dictionary=dictionary
+            )(
+                value=self.pw_dictionary
+            )
+        except ValidationError, e:
+            error = e.error_list
+
+        self.assertEquals(
+            error[1].message,
+            'Must not contain words found in the dictionary.'
         )
 
     def test_good_password(self):

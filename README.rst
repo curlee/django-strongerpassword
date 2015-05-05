@@ -16,6 +16,13 @@ Quick start
   class Form(forms.Form):
      password = StrongerPasswordField(label='Password')
 
+3. Add settings (optional)
+
+  STRONGER_PASSWORD = {
+    'dictionary': path/to/dictionary,
+
+  }
+
 
 Build:
 
