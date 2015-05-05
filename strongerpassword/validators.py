@@ -114,7 +114,8 @@ class HippaValidator(BaseValidator):
 class ContainsNumberValidator(RegexValidator):
     message = _('Must contain %s or more numbers.')
     regex = re.compile(
-        r'[0-9]+'
+        r'[0-9]+',
+        flags=re.IGNORECASE
     )
 
 
@@ -122,7 +123,8 @@ class ContainsSpecialCharValidator(RegexValidator):
     message = _('Must contain %s or more special characters.')
     code = 'special_chars'
     regex = re.compile(
-        r'[$&*]+'
+        r'[$&*]+',
+        flags=re.IGNORECASE
     )
 
 
