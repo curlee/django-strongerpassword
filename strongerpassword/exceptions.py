@@ -15,3 +15,19 @@ class MissingDictionaryError(ValidationError):
             })
 
         super(MissingDictionaryError, self).__init__(**kwargs)
+
+
+
+class MissingNamesError(ValidationError):
+    def __init__(self, **kwargs):
+        if not kwargs.get('message'):
+            kwargs.update(
+                {'message': _('No names supplied to validator.')}
+            )
+
+        if not kwargs.get('code'):
+            kwargs.update({
+                'code': 'missing_names'
+            })
+
+        super(MissingNamesError, self).__init__(**kwargs)

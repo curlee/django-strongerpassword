@@ -6,6 +6,8 @@ from django.core.validators import RegexValidator
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings as django_settings
 from .exceptions import MissingDictionaryError
+from .exceptions import MissingNamesError
+
 
 settings = django_settings.STRONGER_PASSWORD
 
@@ -14,7 +16,7 @@ class HippaValidator(BaseValidator):
     code = 'hippa_error'
     message = _('Your password is not strong enough.')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self._errors = []
         self._min_length = kwargs.get(
             'length', settings.get('length', 6)
@@ -30,6 +32,9 @@ class HippaValidator(BaseValidator):
             'dictionary',
             settings.get('dictionary', None)
         )
+        self._names = kwargs.get(
+            'names', None
+        )
 
         super(HippaValidator, self).__init__(
             limit_value=None
@@ -40,6 +45,7 @@ class HippaValidator(BaseValidator):
         self._validate_min_int_length(value)
         self._validate_contains_special_char(value)
         self._validate_dictionary(value)
+        self._validate_names(value)
 
         if self._errors:
             raise ValidationError(
@@ -79,6 +85,15 @@ class HippaValidator(BaseValidator):
         except ValidationError, e:
             self._handle_exception(
                 DictionaryValidator.message,
+                e.code
+            )
+
+    def _validate_names(self, value):
+        try:
+            NameValidator(names=self._names)(value)
+        except ValidationError, e:
+            self._handle_exception(
+                NameValidator.message,
                 e.code
             )
 
@@ -139,3 +154,17 @@ class DictionaryValidator(RegexValidator):
             code=self.code,
             inverse_match=True
         )
+
+
+class NameValidator(DictionaryValidator):
+    message = _('Must not contain your username or real name.')
+    code = 'name_validator'
+
+    def __init__(self, **kwargs):
+        dictionary = kwargs.pop('names', None)
+        kwargs.update({'dictionary': dictionary})
+
+        if not dictionary or not isinstance(dictionary, list):
+            raise MissingNamesError()
+
+        super(NameValidator, self).__init__(**kwargs)
