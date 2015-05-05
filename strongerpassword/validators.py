@@ -14,12 +14,14 @@ class HippaValidator(BaseValidator):
         self._errors = []
         self._min_length = kwargs.get('length', 6)
         self._min_int_length = kwargs.get('numbers', 1)
+        self._min_spec_length = kwargs.get('special', 1)
 
         super(HippaValidator, self).__init__(limit_value=None)
 
     def __call__(self, value):
         self._validate_min_length(value)
         self._validate_min_int_length(value)
+        self._validate_contains_special_char(value)
 
         if self._errors:
             raise ValidationError(
@@ -31,14 +33,27 @@ class HippaValidator(BaseValidator):
             MinLengthValidator(self._min_length)(value)
         except ValidationError, e:
             self._handle_exception(
-                'Must contain 6 or more characters.', e.code
+                _('Must contain %s or more characters.') % self._min_length,
+                e.code
             )
 
     def _validate_min_int_length(self, value):
         try:
             ContainsNumberValidator()(value)
         except ValidationError, e:
-            self._handle_exception('min int', e.code)
+            self._handle_exception(
+                ContainsNumberValidator.message % self._min_int_length,
+                e.code
+            )
+
+    def _validate_contains_special_char(self, value):
+        try:
+            ContainsSpecialCharValidator()(value)
+        except ValidationError, e:
+            self._handle_exception(
+                ContainsSpecialCharValidator.message % self._min_spec_length,
+                e.code
+            )
 
     def _handle_exception(self, message, code):
         if not len(self._errors):
@@ -55,6 +70,15 @@ class HippaValidator(BaseValidator):
 
 
 class ContainsNumberValidator(RegexValidator):
+    message = _('Must contain %s or more numbers.')
     regex = re.compile(
         r'[0-9]+'
+    )
+
+
+class ContainsSpecialCharValidator(RegexValidator):
+    message = _('Must contain %s or more special characters.')
+    code = 'special_chars'
+    regex = re.compile(
+        r'[$&*]+'
     )
