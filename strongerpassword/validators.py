@@ -119,7 +119,7 @@ class LengthValidator(MinLengthValidator):
     def __call__(self, value):
         try:
             MinLengthValidator(self.limit_value)(value)
-        except ValidationError, e:
+        except ValidationError:
             raise ValidationError(
                 self.message % self.limit_value,
                 self.code
