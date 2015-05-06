@@ -17,7 +17,6 @@ class MissingDictionaryError(ValidationError):
         super(MissingDictionaryError, self).__init__(**kwargs)
 
 
-
 class MissingNamesError(ValidationError):
     def __init__(self, **kwargs):
         if not kwargs.get('message'):

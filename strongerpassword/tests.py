@@ -1,7 +1,6 @@
 import os
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from authtools.models import User
 from .validators import HippaValidator
 from .validators import LengthValidator
 from .validators import ContainsNumberValidator
@@ -78,7 +77,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Must contain 1 or more numbers.'
+            ContainsNumberValidator.message % self.kwargs['number']
         )
 
     def test_raise_hippa_error_missingspecialchar_exception(self):
@@ -91,7 +90,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Must contain 1 or more special characters.'
+            ContainsSpecialCharValidator.message % self.kwargs['special']
         )
 
     def test_raise_hippa_error_dictionary_exception(self):
