@@ -6,8 +6,13 @@ from . import validators
 
 
 class PasswordChangeForm(PasswordChangeFormBase):
-    new_password1 = forms.CharField(
-        label='New password',
-        widget=forms.PasswordInput,
-        validators=[validators.HippaValidator()]
-    )
+    def __init__(self, *args, **kwargs):
+        names = kwargs.pop('names', None)
+
+        super(PasswordChangeForm, self).__init__(*args, **kwargs)
+
+        self.fields['new_password1'] = forms.CharField(
+            label='New password',
+            widget=forms.PasswordInput,
+            validators=[validators.HippaValidator(names=names)]
+        )
