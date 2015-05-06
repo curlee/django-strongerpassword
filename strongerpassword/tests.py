@@ -1,8 +1,14 @@
 import os
 from django.test import TestCase
-from .validators import HippaValidator
 from django.core.exceptions import ValidationError
 from authtools.models import User
+from .validators import HippaValidator
+from .validators import LengthValidator
+from .validators import ContainsNumberValidator
+from .validators import ContainsSpecialCharValidator
+from .validators import DictionaryValidator
+from .validators import NameValidator
+
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TEST_DICT_PATH = os.path.join(HERE, 'test_dictionary')
@@ -46,7 +52,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Your password is not strong enough.'
+            HippaValidator.message
         )
 
     def test_raise_hippa_error_shortpw_exception(self):
@@ -59,7 +65,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Must contain 6 or more characters.'
+            LengthValidator.message % self.kwargs['length']
         )
 
     def test_raise_hippa_error_missingint_exception(self):
@@ -100,7 +106,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Must not contain common words.'
+            DictionaryValidator.message
         )
 
     def test_raise_hippa_error_dictionary_exception_withlist(self):
@@ -119,7 +125,7 @@ class TestHippaValidator(TestCase):
 
         self.assertEquals(
             error,
-            'Must not contain common words.'
+            DictionaryValidator.message
         )
 
     def test_raise_username_error(self):
@@ -133,7 +139,7 @@ class TestHippaValidator(TestCase):
             error = e.error_list[1].message
 
         self.assertEquals(
-            error, 'Must not contain your username or name.'
+            error, NameValidator.message
         )
 
     def test_good_password(self):

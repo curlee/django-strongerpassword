@@ -54,10 +54,10 @@ class HippaValidator(BaseValidator):
 
     def _validate_min_length(self, value):
         try:
-            MinLengthValidator(self._min_length)(value)
+            LengthValidator(self._min_length)(value)
         except ValidationError, e:
             self._handle_exception(
-                _('Must contain %s or more characters.') % self._min_length,
+                LengthValidator(self._min_length).message % self._min_length,
                 e.code
             )
 
@@ -109,6 +109,21 @@ class HippaValidator(BaseValidator):
                 code=code
             )
         )
+
+
+class LengthValidator(MinLengthValidator):
+    message = _('Must contain at least %s characters.')
+    limit_value = 0
+    code = 'min_length'
+
+    def __call__(self, value):
+        try:
+            MinLengthValidator(self.limit_value)(value)
+        except ValidationError, e:
+            raise ValidationError(
+                self.message % self.limit_value,
+                self.code
+            )
 
 
 class ContainsNumberValidator(RegexValidator):
