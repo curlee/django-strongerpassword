@@ -16,13 +16,12 @@ class HippaValidator(BaseValidator):
     code = 'hippa_error'
     message = _('Your password is not strong enough.')
 
-    def __init__(self, **kwargs):
-        self._errors = []
+    def __init__(self, *args, **kwargs):
         self._min_length = kwargs.get(
             'length', settings.get('length', 6)
         )
         self._min_int_length = kwargs.get(
-            'numbers', settings.get('numbers', 1)
+            'number', settings.get('number', 1)
         )
         self._min_spec_length = kwargs.get(
             'special',
@@ -41,11 +40,16 @@ class HippaValidator(BaseValidator):
         )
 
     def __call__(self, value):
+        self._errors = []
         self._validate_min_length(value)
         self._validate_min_int_length(value)
         self._validate_contains_special_char(value)
-        self._validate_dictionary(value)
-        self._validate_names(value)
+
+        if self._dictionary:
+            self._validate_dictionary(value)
+
+        if self._names:
+            self._validate_names(value)
 
         if self._errors:
             raise ValidationError(
