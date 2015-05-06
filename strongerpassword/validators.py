@@ -161,7 +161,8 @@ class DictionaryValidator(RegexValidator):
             dictionary = frozenset(
                 [word for word in dictionary.split('\n')]
             )
-        elif not isinstance(dictionary, list):
+
+        if not isinstance(dictionary, list):
             raise MissingDictionaryError()
 
         self.regex = re.compile(
